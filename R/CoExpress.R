@@ -1,5 +1,9 @@
 CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
                       nPartitions=10, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5){
+
+ if(is.null(seuratAssay)){
+    seuratAssay <- DefaultAssay(obj)
+  }
   
   # Background gene expression:
   if(is.null(BkgdGeneExpr)){
@@ -38,12 +42,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     gene_A <- target_genes[!target_genes %in% gene2]
     gene_B <- gene2
   }
-  
-  if(is.null(seuratAssay)){
-    seuratAssay <- DefaultAssay(obj)
-  }
-  
-  
+
   message("Calculating Co-Localization in Pairs...")
   for(i in 1:length(gene_A)){
     # Coexpression info for one pair:
