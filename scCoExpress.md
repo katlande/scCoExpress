@@ -13,9 +13,32 @@ These functions use a modified version of Mander’s Overlap Coefficient
 between any pair of genes, wherein an average background MOC is
 calculated using genes with a similar abundance to the target gene pair.
 All results are reported as a comparison of the target MOC to the local
-background MOC to account for the sparity of single cell data. Note that
-this is a permutation based method, and results are not expected to be
-identical between different iterations of the same comparison.
+background MOC to account for the sparity of single cell data.
+
+#### The Single-Cell MOC Calculation
+
+- c = The cells in the experiment
+- A = The vector of expression of gene A in all cells k
+- B = The vector of expression of gene B in all cells k
+
+$$ \left( \sum_{k=1}^c A_k B_k \right) / \left( \left( \sum_{k=1}^c A_k^2 \right)  * \left( \sum_{k=1}^c B_k^2 \right) \right)^{1/2} $$
+
+**All modes of scCoExpress** return a ratio of the MOC of the genes of
+interest against an average or distribution of MOCs from pairs of genes
+with similar expression to the target genes. **Partition mode** splits
+background genes into groups based on expression similarity. For any
+pair of two target genes, the background MOCs are generated from the
+partitions with the most similar expression to the targets. When
+querying a large number of genes, this will be fastest. **Local mode**
+generates backgrounds using the genes that have the most similar
+expression to the two target genes. This mode is expected to be the most
+accurate, but for a large number of genes, this mode takes a *very* long
+time. However, if comparing a number of genes *smaller* than the number
+of partitions in partition mode, local mode will actually be faster.
+
+*Note that this is a permutation based method, and results are not
+expected to be identical between different iterations of the same
+comparison.*
 
 #### Let’s load in Seurat’s example PBMC dataset. This data has already been filtered, but we’re going to apply an SCTransform, as we will need to use normalized data to quantify co-expression.
 
@@ -81,26 +104,27 @@ coExpr_Res <-
 
 #### Here’s a summary of what all the options in the CoExpress() function actually do:
 
-- obj Seurat Object
-- target_genes Vector of gene names
-- gene2=NULL Target gene if only comparing one, or NULL if all pairwise
+- **obj**: Seurat Object
+- **target_genes**: Vector of gene names
+- **gene2**: Target gene if only comparing one, or NULL if all pairwise
   comparisons
-- seuratAssay Seurat Assay to use (defaults to defaultAssay)
-- seuratSlot Seurat assay slot to use (defaults to “data”)
-- nPartitions gene partitions, set to NULL for local backgrounds (only
-  for small gene lists)
-- nPermutations number of permutations for parition backgrounds, or for
-  local backgrounds if nParitions is NULL
-- BkgdGeneExpr getGeneExpr() output object, runs internally if NULL
-- topExcl value between 0-1, percentile above which cells will be set as
-  “extreme” genes
-- bottomExcl value between 0-1, minimum fraction of cells a gene needs
-  to be expressed in, below which genes will be set as “extreme”
-- local.perms in partition mode, the number of permutations to run on
-  high and low expressed genes locally
-- skip.extremes skips tabulating co-expression on comparisons with very
-  highly or very lowly expressed genes
-- seurat main Seurat version being used (e.g, 3, 4, 5…), as numeric.
+- **seuratAssay**: Seurat Assay to use (defaults to defaultAssay)
+- **seuratSlot**: Seurat assay slot to use (defaults to “data”)
+- **nPartitions**: gene partitions, set to NULL for local backgrounds
+  (only for small gene lists)
+- **nPermutations**: number of permutations for parition backgrounds, or
+  for local backgrounds if nParitions is NULL
+- **BkgdGeneExpr**: getGeneExpr() output object, runs internally if NULL
+- **topExcl**: value between 0-1, percentile above which cells will be
+  set as “extreme” genes
+- **bottomExcl**: value between 0-1, minimum fraction of cells a gene
+  needs to be expressed in, below which genes will be set as “extreme”
+- **local.perms**: in partition mode, the number of permutations to run
+  on high and low expressed genes locally
+- **skip.extremes**: skips tabulating co-expression on comparisons with
+  very highly or very lowly expressed genes
+- **seurat**: main Seurat version being used (e.g, 3, 4, 5…), as
+  numeric.
 
 ## QCing Co-Expression
 
@@ -215,4 +239,4 @@ plotCoExpr(coExpr_top)
 
 <img src="scCoExpress_files/figure-gfm/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
-Here we see of best co-expression groups!
+Here we see our best co-expression groups!
