@@ -21,7 +21,7 @@ background MOC to account for the sparity of single cell data.
 - A = The vector of expression of gene A in all cells k
 - B = The vector of expression of gene B in all cells k
 
-$$ \left( \sum_{k=1}^c A_k B_k \right) / \left( \left( \sum_{k=1}^c A_k^2 \right)  * \left( \sum_{k=1}^c B_k^2 \right) \right)^{1/2} $$
+$$ \left( \sum_{k=1}^c A_k B_k \right) / \sqrt{ \left( \sum_{k=1}^c A_k^2 \right)  * \left( \sum_{k=1}^c B_k^2 \right) } $$
 
 **All modes of scCoExpress** return a ratio of the MOC of the genes of
 interest against an average or distribution of MOCs from pairs of genes
