@@ -7,4 +7,4 @@ remotes::install_github("katlande/scCoExpress")
 [Instructions for Use](https://github.com/katlande/scCoExpress/blob/main/scCoExpress.md)
 
 #### Disclaimer:
-This package was designed for use with Seurat5
+This package was designed for use with Seurat5. It works with Seurat4, but may break with newer iterations of Seurat.
