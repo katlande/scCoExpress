@@ -1,5 +1,3 @@
-# Scripts for running MOC co-express analysis on single cell or spatial data in R.
-
 ## Single Cell Co-Expression
 These functions identify the co-expression intensity of pairs of genes within individual cells or nuclei, using single cell or spatial data pre-processed in a Seurat Object. These functions use a modified version of Mander's Overlap Coefficient between any pair of genes, wherein an average background MOC is calculated using genes with a similar abundance to the target gene pair. All results are reported as a comparison of the target MOC to the local background MOC to account for the sparity of single cell data. 
 
