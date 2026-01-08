@@ -2,7 +2,7 @@ plotCoExpr <- function(co){
   
   co <- co[!is.na(co$MOC_Z),]
   
-  if(any(is.na(co$Zadj))){
+  if(any(is.na(co$Zadj)) | is.null(co$Zadj)){
     message("Adjusted Z-scores contain NAs! Using unadjusted Z-scores for plotting.")
     co <- setNames(co[colnames(co) %in% c("GeneA", "GeneB", "MOC_Z")], c("GeneA", "GeneB", "Z"))
   } else {
