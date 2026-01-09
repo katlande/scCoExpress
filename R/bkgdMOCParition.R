@@ -3,10 +3,11 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
   # high and low expressiong cut-offs:
   minThresh <- nrow(gene_expr[gene_expr$occurance <= bottom,])
   maxThresh <- nrow(gene_expr[gene_expr$occurance < quantile(gene_expr$occurance, top),])
-  
+
+  # updated to ignore bug created by too large 0 pool:
   gene_expr$group <- NA
-  locs <- seq(1, nrow(gene_expr)+1, by=(as.integer(nrow(gene_expr)/paritions)))
-  locs <- c(locs[1], minThresh, locs[2:length(locs)])
+  locs <- seq(minThresh, maxThresh+1, by=(as.integer(length(minThresh:maxThresh)/7)))
+  locs <- c(1,locs,nrow(gene_expr))
   locs[length(locs)] <- maxThresh
   locs <- c(locs, nrow(gene_expr))
   
