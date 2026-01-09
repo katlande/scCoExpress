@@ -19,7 +19,7 @@ Get cell-level co-expression values on a set of gene pairs from a single cell, s
 \item{topExcl}{Value between 0-1, percentile above which cells will be set as "extreme" genes.}
 \item{bottomExcl}{Value between 0-1, minimum fraction of cells a gene needs to be expressed in, below which genes will be set as "extreme."}
 \item{local.perms}{In partition mode if \code{skip.extremes==FALSE}, the number of permutations to run on high and low expressed genes locally}
-\item{skip.extremes}{\code{Boolean}, whether or not to skip tabulating co-expression on comparisons with very highly or very lowly expressed genes. If \code{TRUE}, runs extreme genes in local mode.}
+\item{skip.extremes}{\code{Boolean}, whether or not to skip tabulating co-expression on comparisons with very highly or very lowly expressed genes. If \code{FALSE}, runs extreme genes in local mode. If \code{TRUE}, ignores extreme genes entirely.}
 \item{seurat}{Top level Seurat version to use as an \code{integer}. E.g., for Seurat 5.1.0, v=5.}
 }
 \value{
