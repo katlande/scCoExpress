@@ -8,8 +8,6 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
   gene_expr$group <- NA
   locs <- seq(minThresh, maxThresh+1, by=(as.integer(length(minThresh:maxThresh)/7)))
   locs <- c(1,locs,nrow(gene_expr))
-  locs[length(locs)] <- maxThresh
-  locs <- c(locs, nrow(gene_expr))
   
   j <- 1
   for(i in 2:length(locs)){
