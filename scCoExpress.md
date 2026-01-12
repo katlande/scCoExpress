@@ -83,7 +83,7 @@ CheckMaxQuantile(pbmc_expr, quantiles = c(0.25, 0.5, 0.75))
 #### Here we can see that the top 25% of genes have a much wider range of abundance. Parition accuracy relies strongly on the abundance of genes in the partitions being relatively similar, so these very high abundance outliers need to be pruned out. We’ll set our top quantile to 0.96 for this comparison.
 
 ## Running Co-Expression
-
+#### Note: Parameters used here are NOT recommended for actual datasets. More information on how to modify these settings can be found in the commented text below.
 ``` r
 # select 10 random genes to query for co-expression:
 genes <- c("PCMT1", "XCL2", "RNF130", "SDPR", "FCN1", "CD8A", "DNAJC2", "PPP3CC", "TPM4", "IL7R")
@@ -93,8 +93,8 @@ coExpr_Res <-
             target_genes = genes, 
             topExcl = 0.96, 
             bottomExcl = 0.005, # removes any genes in fewer than 0.5% of cells   
-            nPermutations = 20, # number of permutations to use for per partition pair (more permutations = more accurate, but more time-expensive). For larger sets, 50 permutations are recommended. We will use 20 here as the pbmc small set contains only 220 genes.
-            nPartitions = 4, # number of groupings to use for background (more partitions = more accurate, but more time-expensive). For larger sets, 10 partitions are recommended. We will use 4 here as the pbmc small set contains only 220 genes (~50 genes/partition).
+            nPermutations = 20, # number of permutations to use for per partition pair (more permutations = more accurate, but more time-expensive). For larger sets, 50+ permutations are recommended. We will use 20 here to make the test run faster.
+            nPartitions = 4, # number of groupings to use for background (more partitions = more accurate, but more time-expensive). For larger sets, 7-10 partitions are recommended. We will use 4 here as the pbmc small set contains only 220 genes (~50 genes/partition).
             BkgdGeneExpr=pbmc_expr, # if NULL, pbmc_expr will be generated internally
             skip.extremes = T) # comparisons containing very highly and very lowly expressed genes will be ignored; if F, these genes will use the most similarly expressed genes as the background instead; this may cause large increases in computing time.
 ```
