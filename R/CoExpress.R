@@ -1,5 +1,5 @@
 CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
-                      nPartitions=10, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5){
+                      nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5){
 
  if(is.null(seuratAssay)){
     seuratAssay <- DefaultAssay(obj)
