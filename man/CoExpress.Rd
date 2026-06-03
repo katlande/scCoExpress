@@ -2,7 +2,7 @@
 \alias{CoExpress}
 \title{Get Co-expression information from a list of genes.}
 \usage{
-CoExpress(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", nPartitions=10, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5)
+CoExpress(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", nPartitions=10, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5, show.progress=FALSE)
 }
 \description{
 Get cell-level co-expression values on a set of gene pairs from a single cell, single nuclei, or spatial dataset..}
@@ -21,6 +21,7 @@ Get cell-level co-expression values on a set of gene pairs from a single cell, s
 \item{local.perms}{In partition mode if \code{skip.extremes==FALSE}, the number of permutations to run on high and low expressed genes locally}
 \item{skip.extremes}{\code{Boolean}, whether or not to skip tabulating co-expression on comparisons with very highly or very lowly expressed genes. If \code{FALSE}, runs extreme genes in local mode. If \code{TRUE}, ignores extreme genes entirely.}
 \item{seurat}{Top level Seurat version to use as an \code{integer}. E.g., for Seurat 5.1.0, v=5.}
+\item{show.progress}{Boolean, option to turn on "progress dots" for permutations.}
 }
 \value{
 Returns Co-Expression results from a specified set of genes in a Seurat Object.
