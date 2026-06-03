@@ -33,7 +33,7 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
   
   mocs <- list()
   for(c in 1:length(compA)){
-    cat(".")
+    # cat(".") # annoying for users
     bkgd_a <- gene_expr$gene[gene_expr$group==compA[c]]
     bkgd_b <- gene_expr$gene[gene_expr$group==compB[c]]
     
@@ -67,6 +67,6 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
     
     
   }
-  cat("\n")
+  #cat("\n")
   return(list(list(gene_expr), mocs))
 }
