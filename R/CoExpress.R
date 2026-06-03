@@ -1,5 +1,5 @@
 CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
-                      nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5){
+                      nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5, show.progress=FALSE){
 
  if(is.null(seuratAssay)){
     seuratAssay <- DefaultAssay(obj)
@@ -107,7 +107,9 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
       # if the comparison contains an edge gene:
       if(! BkgdGeneExpr$group[BkgdGeneExpr$gene==a] %in% c("HIGHLY EXPRESSED", "LOWLY EXPRESSED") & 
          ! BkgdGeneExpr$group[BkgdGeneExpr$gene==b] %in% c("HIGHLY EXPRESSED", "LOWLY EXPRESSED")){
-        cat(".")
+        if(show.progress){
+          cat(".")
+        }
         g <- paste0(BkgdGeneExpr$group[BkgdGeneExpr$gene==a], BkgdGeneExpr$group[BkgdGeneExpr$gene==b])
         GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(expr_groups[[g]])
         GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(expr_groups[[g]]))/sd(expr_groups[[g]])
@@ -118,7 +120,9 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
           GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- NA
           GetCoExpr_OUTPUTFILE$MOC_Z[i] <- NA
         }else{
-          cat("*")
+          if(show.progress){
+            cat("*")
+          }
           # get the background and Z score for local comparisons here...
           v <- Local_Once(SOBJ = obj, ass = seuratAssay, sl = seuratSlot, a = GetCoExpr_OUTPUTFILE$GeneA[i], b = GetCoExpr_OUTPUTFILE$GeneB[i], bkgd = local.perms, gene_expr = BkgdGeneExpr)
           GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(v)
@@ -147,12 +151,12 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     reg <- lm(tmp$MOC_Z~tmp$MOC_Ratio)
     rsq <- summary(reg)$r.squared
     
-    if(rsq > 0.8){
+    if(rsq > 0.7){
       unlist(lapply(GetCoExpr_OUTPUTFILE$MOC_Ratio, function(x){
         lin(x, reg)
       })) -> GetCoExpr_OUTPUTFILE$Zadj
       if(rsq < 0.9){
-        warning(paste0("Low R-squared value; Z-score adjustment may be inaccurate!"))
+        warning(paste0("R-squared value is below 0.9; Z-score adjustment may be inaccurate!"))
         if(is.null(nPartitions)){
           message("Consider using a greater number of permutations to increase Z-score adjustment accuracy.")
         } else {
@@ -162,9 +166,9 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     } else {
       
       if(is.null(nPartitions)){
-        warning("R-squared too low to reliably adjust Z-score... Skipping.\nConsider using a greater number of permutations. Large Z-score residuals may indicate unreliable results!")
+        warning(paste0("R-squared too low to reliably adjust Z-score (", rsq, ")... Skipping.\nConsider using a greater number of permutations. Large Z-score residuals may indicate unreliable results!"))
       } else {
-        warning("R-squared too low to reliably adjust Z-score... Skipping.\nConsider using a greater number of permutations and/or partitions. Large Z-score residuals may indicate unreliable results!")
+        warning(paste0("R-squared too low to reliably adjust Z-score (", rsq, ")... Skipping.\nConsider using a greater number of permutations or partitions. Large Z-score residuals may indicate unreliable results!"))
       }
       
     }
