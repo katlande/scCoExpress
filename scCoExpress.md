@@ -40,7 +40,7 @@ of partitions in partition mode, local mode will actually be faster.
 expected to be identical between different iterations of the same
 comparison.*
 
-#### Let’s load in Seurat’s example PBMC dataset. This data has already been filtered, but we’re going to apply an SCTransform, as we will need to use normalized data to quantify co-expression.
+#### Let’s load in Seurat’s example PBMC dataset. This data has already been filtered:
 
 ``` r
 # Install scCoExpress (once):
@@ -48,12 +48,17 @@ comparison.*
 
 library(Seurat)
 library(scCoExpress)
-# SCTransform:
+
+# We must supply normalized data to the CoExpress function
+# normalize with SCTransform:
 pbmc <- PercentageFeatureSet(pbmc_small, pattern = "^MT-", col.name = "percent.mt")
 pbmc <- SCTransform(pbmc, vars.to.regress = "percent.mt", verbose = FALSE)
-
-# Set 'SCT' to the default assay
 DefaultAssay(pbmc) <- "SCT"
+
+# log-normalize:
+pbmc <- NormalizeData(pbmc)
+DefaultAssay(pbmc) <- "RNA"
+
 ```
 
 #### Co-Expression will run on all the cells in the input Seurat object; to make the results sample, celltype, or condition-specific, you’d need to subset your data prior to quantifying Co-Expression. For the sake of this tutorial, we will look at all the PBMC cells together.
