@@ -148,7 +148,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     
     tmp <- GetCoExpr_OUTPUTFILE[!is.na(GetCoExpr_OUTPUTFILE$MOC_Z),]
     message("Adjusting Z-scores...")
-    reg <- stats::lm(tmp$MOC_Z~tmp$MOC_Ratio, na.action = na.omit)
+    reg <- stats::lm(MOC_Z ~ MOC_Ratio, data = tmp, na.action = na.omit)
     rsq <- summary(reg)$r.squared
     
     if(rsq > 0.7){
