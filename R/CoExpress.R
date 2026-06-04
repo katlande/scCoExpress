@@ -120,7 +120,9 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
       } else{
         
         
-        if(skip.extremes){
+        if(skip.extremes |  
+           BkgdGeneExpr$group[BkgdGeneExpr$gene==a] == "LOWLY EXPRESSED" | 
+           BkgdGeneExpr$group[BkgdGeneExpr$gene==b] == "LOWLY EXPRESSED"){
           GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- NA
           GetCoExpr_OUTPUTFILE$MOC_Z[i] <- NA
         }else{
@@ -128,7 +130,8 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
             cat("*")
           }
           # get the background and Z score for local comparisons here...
-          v <- Local_Once(SOBJ = obj, ass = seuratAssay, sl = seuratSlot, a = GetCoExpr_OUTPUTFILE$GeneA[i], b = GetCoExpr_OUTPUTFILE$GeneB[i], bkgd = local.perms, gene_expr = BkgdGeneExpr)
+          v <- Local_Once(SOBJ = obj, ass = seuratAssay, sl = seuratSlot, a = GetCoExpr_OUTPUTFILE$GeneA[i], 
+                          b = GetCoExpr_OUTPUTFILE$GeneB[i], bkgd = local.perms, gene_expr = BkgdGeneExpr)
           GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(v)
           GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(v))/stats::sd(v)
           rm(v)
