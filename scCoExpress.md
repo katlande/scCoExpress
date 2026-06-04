@@ -49,13 +49,14 @@ comparison.*
 library(Seurat)
 library(scCoExpress)
 
-# We must supply normalized data to the CoExpress function
-# normalize with SCTransform:
+# We must supply normalized data to the CoExpress function. Choose one of:
+
+# (1) normalize with SCTransform:
 pbmc <- PercentageFeatureSet(pbmc_small, pattern = "^MT-", col.name = "percent.mt")
 pbmc <- SCTransform(pbmc, vars.to.regress = "percent.mt", verbose = FALSE)
 DefaultAssay(pbmc) <- "SCT"
 
-# log-normalize:
+# (2) log-normalize:
 pbmc <- NormalizeData(pbmc)
 DefaultAssay(pbmc) <- "RNA"
 
