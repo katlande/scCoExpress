@@ -153,7 +153,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     
     if(rsq > 0.7){
       unlist(lapply(GetCoExpr_OUTPUTFILE$MOC_Ratio, function(x){
-        lin(x, reg)
+        ifelse(is.na(x), NA, lin(x, reg))
       })) -> GetCoExpr_OUTPUTFILE$Zadj
       if(rsq < 0.9){
         warning(paste0("R-squared value is below 0.9; Z-score adjustment may be inaccurate!"))
