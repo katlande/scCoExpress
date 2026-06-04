@@ -1,8 +1,10 @@
+#' @export
 CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
-                      nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, local.perms=6, skip.extremes=T, seurat=5, show.progress=FALSE){
+                      nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, 
+                      local.perms=6, skip.extremes=F, seurat=5, show.progress=FALSE){
 
  if(is.null(seuratAssay)){
-    seuratAssay <- DefaultAssay(obj)
+    seuratAssay <- Seurat::DefaultAssay(obj)
   }
   
   # Background gene expression:
@@ -18,7 +20,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
       target_genes <- target_genes[!target_genes %in% BkgdGeneExpr$gene[BkgdGeneExpr$gene %in%  target_genes &  BkgdGeneExpr$occurance == 0]]
     }
     
-    mat <- combn(unique(target_genes), 2)
+    mat <- utils::combn(unique(target_genes), 2)
     gene_A <- mat[1,]
     gene_B <- mat[2,]
     message(paste0(length(unique(target_genes)), " unique input genes becomes ", length(gene_B), " pairwise comparisons."))
@@ -44,20 +46,16 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
   }
 
   message("Calculating Co-Localization in Pairs...")
-  for(i in 1:length(gene_A)){
-    # Coexpression info for one pair:
+  lapply(1:length(gene_A), function(i){
+    
     if(length(gene_B)==1){
       tmp <- suppressMessages(GetCoExpr(SeuratObj=obj, geneA=gene_A[i], geneB=gene_B, assay=seuratAssay, slot=seuratSlot)) 
     } else{
       tmp <- suppressMessages(GetCoExpr(SeuratObj=obj, geneA=gene_A[i], geneB=gene_B[i], assay=seuratAssay, slot=seuratSlot)) 
     }
-    # Save to output file:
-    if(exists("GetCoExpr_OUTPUTFILE")){
-      GetCoExpr_OUTPUTFILE <- rbind(GetCoExpr_OUTPUTFILE, tmp)
-    } else {
-      GetCoExpr_OUTPUTFILE <- tmp
-    }
-  }
+    return(tmp)
+  }) -> GetCoExpr_OUTPUTFILE
+  do.call(rbind, GetCoExpr_OUTPUTFILE) -> GetCoExpr_OUTPUTFILE
   
   message("Getting MOC/Background Ratios...")
   if(is.null(nPartitions)){
@@ -71,14 +69,20 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     
     GetCoExpr_OUTPUTFILE$MOC_Z <- NA
     for(i in 1:nrow(GetCoExpr_OUTPUTFILE)){
-      GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(MOC_backgrounds[[i]]))/sd(MOC_backgrounds[[i]])
+      GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(MOC_backgrounds[[i]]))/stats::sd(MOC_backgrounds[[i]])
     }
     
     GetCoExpr_OUTPUTFILE$MOC_Ratio <- GetCoExpr_OUTPUTFILE$MOC/GetCoExpr_OUTPUTFILE$MOC_bkgd
     
   } else {
     
-    MOC_backgrounds <- bkgdMOCParition(obj, gene_expr=BkgdGeneExpr, permutations=nPermutations, paritions=nPartitions, assay=seuratAssay, slot=seuratSlot, top=topExcl, bottom=bottomExcl)
+    MOC_backgrounds <- bkgdMOCParition(obj, gene_expr=BkgdGeneExpr, 
+                                       permutations=nPermutations, 
+                                       paritions=nPartitions, 
+                                       assay=seuratAssay, 
+                                       slot=seuratSlot, 
+                                       top=topExcl, 
+                                       bottom=bottomExcl)
     
     BkgdGeneExpr <- as.data.frame(MOC_backgrounds[[1]])
     expr_groups <- MOC_backgrounds[[2]]
@@ -91,7 +95,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
       if(skip.extremes == T){
         message("Comparisons containing these genes will be skipped...")
       } else{
-        message("Will use local background for these comparisons (*)...")
+        message("Will use local background for these comparisons...")
       }
     } 
     
@@ -112,7 +116,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
         }
         g <- paste0(BkgdGeneExpr$group[BkgdGeneExpr$gene==a], BkgdGeneExpr$group[BkgdGeneExpr$gene==b])
         GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(expr_groups[[g]])
-        GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(expr_groups[[g]]))/sd(expr_groups[[g]])
+        GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(expr_groups[[g]]))/stats::sd(expr_groups[[g]])
       } else{
         
         
@@ -126,7 +130,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
           # get the background and Z score for local comparisons here...
           v <- Local_Once(SOBJ = obj, ass = seuratAssay, sl = seuratSlot, a = GetCoExpr_OUTPUTFILE$GeneA[i], b = GetCoExpr_OUTPUTFILE$GeneB[i], bkgd = local.perms, gene_expr = BkgdGeneExpr)
           GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(v)
-          GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(v))/sd(v)
+          GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(v))/stats::sd(v)
           rm(v)
         }
       }
@@ -144,11 +148,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     
     tmp <- GetCoExpr_OUTPUTFILE[!is.na(GetCoExpr_OUTPUTFILE$MOC_Z),]
     message("Adjusting Z-scores...")
-    
-    
-    
-    
-    reg <- lm(tmp$MOC_Z~tmp$MOC_Ratio)
+    reg <- stats::lm(tmp$MOC_Z~tmp$MOC_Ratio)
     rsq <- summary(reg)$r.squared
     
     if(rsq > 0.7){
@@ -179,6 +179,15 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
   }
   
   
+  # calculate significance:
+  if(any(colnames(GetCoExpr_OUTPUTFILE) == "Zadj")){
+    GetCoExpr_OUTPUTFILE$p <- (1 - stats::pnorm(GetCoExpr_OUTPUTFILE$Zadj))
+  } else {
+    message("Calculating significance using unadjusted Z-score...")
+    GetCoExpr_OUTPUTFILE$p <- (1 - stats::pnorm(GetCoExpr_OUTPUTFILE$MOC_Z))
+  }
+  
+  GetCoExpr_OUTPUTFILE$FDR <- stats::p.adjust(GetCoExpr_OUTPUTFILE$p, method = "fdr")
   
   return(GetCoExpr_OUTPUTFILE)
 }

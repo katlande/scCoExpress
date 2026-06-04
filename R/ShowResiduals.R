@@ -1,6 +1,7 @@
+#' @export
 ShowResiduals <- function(CoExpr){
   
-  reg <- lm(CoExpr$MOC_Z~CoExpr$MOC_Ratio)
+  reg <- stats::lm(CoExpr$MOC_Z~CoExpr$MOC_Ratio)
   message(paste("Ratio-Z correlation has an Rsq of:", formatC(summary(reg)$r.squared, digits = 4)))
   
   CoExpr <- CoExpr[!is.na(CoExpr$MOC_Z),]

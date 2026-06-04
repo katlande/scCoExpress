@@ -1,3 +1,5 @@
+# Internal function
+#' @noRd
 Local_Once <- function(SOBJ, ass, sl, a, b, bkgd, gene_expr){
   #bkgd <- ceiling(nPermutations/3)
   
@@ -41,8 +43,10 @@ Local_Once <- function(SOBJ, ass, sl, a, b, bkgd, gene_expr){
       bkgd_a <- sample(bkgd_a)
       j <- j+1
       if(j>50){
-        warning(paste0("Background for a & b genes is highly similar! It is taking a long time to find unique background gene pairs for ", a, " and ", b, "..."))
-        j <- 0
+        warning(paste0("Cannot find enough unique background gene pairs for ", a, " and ", b, "!"))
+      }
+      if(j > 100){
+        break()
       }
     }
     

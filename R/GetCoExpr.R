@@ -1,3 +1,5 @@
+# Internal Function
+#' @noRd
 GetCoExpr <- function(SeuratObj, geneA, geneB, assay=NULL, slot="data"){
   
   # Manders' Overlap Coefficient (MOC)

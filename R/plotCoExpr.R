@@ -1,16 +1,17 @@
-plotCoExpr <- function(co, label_df=NULL, fontsize=7, linewight=0.5) {
+#' @export
+plotCoExpr <- function(co, label_df=NULL, fontsize=7, lineweight=0.5) {
   co <- co[!is.na(co$MOC_Z), ]
   if (any(is.na(co$Zadj)) | is.null(co$Zadj)) {
     message("Adjusted Z-scores contain NAs! Using unadjusted Z-scores for plotting.")
-    co <- setNames(co[colnames(co) %in% c("GeneA", "GeneB", 
+    co <- stats::setNames(co[colnames(co) %in% c("GeneA", "GeneB", 
                                           "MOC_Z")], c("GeneA", "GeneB", "Z"))
   }
   else {
     message("Using adjusted Z-scores for plotting.")
-    co <- setNames(co[colnames(co) %in% c("GeneA", "GeneB", 
+    co <- stats::setNames(co[colnames(co) %in% c("GeneA", "GeneB", 
                                           "Zadj")], c("GeneA", "GeneB", "Z"))
   }
-  df <- rbind(co, setNames(co[c(2, 1, 3)], c("GeneA", "GeneB", 
+  df <- rbind(co, stats::setNames(co[c(2, 1, 3)], c("GeneA", "GeneB", 
                                              "Z")))
   df <- unique(df[order(df$Z, decreasing = T), ])
   mat <- suppressMessages(reshape2::dcast(df, GeneA ~ GeneB, 
@@ -22,7 +23,7 @@ plotCoExpr <- function(co, label_df=NULL, fontsize=7, linewight=0.5) {
   for (i in 1:nrow(mat)) {
     mat[rownames(mat)[i], rownames(mat)[i]] <- v
   }
-  tree_row <- hclust(as.dist(1 - cor(t(mat))), method = "ward.D2")
+  tree_row <- stats::hclust(stats::as.dist(1 - stats::cor(t(mat))), method = "ward.D2")
   row_order <- row.names(mat)[tree_row$order]
   df$GeneA <- factor(df$GeneA, levels = row_order)
   df$GeneB <- factor(df$GeneB, levels = row_order)
@@ -36,8 +37,8 @@ plotCoExpr <- function(co, label_df=NULL, fontsize=7, linewight=0.5) {
                    plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"), 
                    axis.text.y = ggplot2::element_text(colour = "black", size=fontsize),
                    axis.text.x = ggplot2::element_text(colour = "black", angle = 45, vjust = 1, hjust = 1, size=fontsize))+ 
-    ggplot2::geom_hline(yintercept = c(0:length(unique(df$GeneA)))+0.5, linewidth = linewight) + 
-    ggplot2::geom_vline(xintercept = c(0:length(unique(df$GeneA)))+0.5, linewidth = linewight) + 
+    ggplot2::geom_hline(yintercept = c(0:length(unique(df$GeneA)))+0.5, linewidth = lineweight) + 
+    ggplot2::geom_vline(xintercept = c(0:length(unique(df$GeneA)))+0.5, linewidth = lineweight) + 
     ggplot2::scale_x_discrete("",  expand = c(0, 0)) + ggplot2::scale_y_discrete("", expand = c(0, 0))
 
   # allows axis text colour labelling:

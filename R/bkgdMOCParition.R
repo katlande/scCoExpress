@@ -1,14 +1,16 @@
+# Internal function
+#' @noRd
 bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, assay=NULL, slot="data", top, bottom){
   
   # high and low expressiong cut-offs:
   minThresh <- nrow(gene_expr[gene_expr$occurance <= bottom,])
-  maxThresh <- nrow(gene_expr[gene_expr$occurance < quantile(gene_expr$occurance, top),])
+  maxThresh <- nrow(gene_expr[gene_expr$occurance < stats::quantile(gene_expr$occurance, top),])
 
   # updated to ignore bug created by too large 0 pool:
   gene_expr$group <- NA
   locs <- seq(minThresh, maxThresh+1, by=(as.integer(length(minThresh:maxThresh)/7)))
   locs <- c(1,locs,nrow(gene_expr))
-  
+  # label thresholds:
   j <- 1
   for(i in 2:length(locs)){
     
@@ -24,30 +26,31 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
     j<-j+1
   }
   
-  comparisons <- cbind(combn(unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")]), 2), t(matrix(c(unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")]), unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")])),nrow=paritions)))
+  comparisons <- cbind(utils::combn(unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")]), 2), t(matrix(c(unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")]), unique(gene_expr$group[!gene_expr$group %in% c("LOWLY EXPRESSED", "HIGHLY EXPRESSED")])),nrow=paritions)))
   compA <- comparisons[1,]
   compB <- comparisons[2,]
   
   message(paste0(paritions, " partitions become ", length(compA), " possible combinations..."))
   message(paste0("Getting partition combination backgrounds with ", permutations, " permutations..."))
   
-  mocs <- list()
-  for(c in 1:length(compA)){
-    # cat(".") # annoying for users
+  # get background distributions for each pair:
+  tryCatch(lapply(1:length(compA), function(c){
+    # get a null background for each sparsity level comparison:
     bkgd_a <- gene_expr$gene[gene_expr$group==compA[c]]
     bkgd_b <- gene_expr$gene[gene_expr$group==compB[c]]
-    
     bkgd_b_tmp <- sample(bkgd_b, replace = T, size = permutations)
     bkgd_a_tmp <- sample(bkgd_a, replace = T, size = permutations)
     
-    # randomly re-order the vector until you have no identical gene comparisons, if that does happen (rare):
+    # prevent self-to-self comparisons:
     j <- 0
     while(any(apply(data.frame(a=bkgd_a_tmp, b=bkgd_b_tmp), 1, function(x){identical(as.character(x)[1], as.character(x)[2])}))){
       bkgd_a_tmp <- sample(bkgd_a_tmp)
       j <- j+1
       if(j>50){
-        warning(paste0("Background for a & b genes is highly similar! It is taking a long time to find unique background gene pairs for ", a, " and ", b, "..."))
-        j <- 0
+        warning(paste0("Cannot find enough unique background gene pairs for ", a, " and ", b, ". Consider decreasing your number of partitions or permutations."))
+      }
+      if(j > 100){
+        stop(paste("Could not find enough valid gene pairs to create a null background! There are likely not enough genes in each partition to find", permutations, "permutations of null."))
       }
     }
     
@@ -55,18 +58,16 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
       calcMOC(SeuratObj, assay, slot, bkgd_a_tmp[as.numeric(x)], bkgd_b_tmp[as.numeric(x)])
     }) ))
     
-    
     if(compA[c] == compB[c]){
-      mocs <- append(mocs, list(k))
-      names(mocs)[length(mocs)] <- c(paste0(compA[c],compB[c]))
+      mocs <- list(k)
+      names(mocs) <- c(paste0(compA[c],compB[c]))
     } else {
-      mocs <- append(mocs, list(k))
-      mocs <- append(mocs, list(k))
-      names(mocs)[(length(mocs)-1):length(mocs)] <- c(paste0(compA[c],compB[c]), paste0(compB[c],compA[c]))
+      mocs <- list(list(k), list(k))
+      names(mocs) <- c(paste0(compA[c],compB[c]), paste0(compB[c],compA[c]))
     }
-    
-    
-  }
-  #cat("\n")
+    return(mocs)
+  })) -> mocs
+  
+  purrr::list_flatten(purrr::list_flatten(mocs)) -> mocs
   return(list(list(gene_expr), mocs))
 }

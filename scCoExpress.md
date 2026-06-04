@@ -127,8 +127,7 @@ coExpr_Res <-
   needs to be expressed in, below which genes will be set as “extreme”
 - **local.perms**: in partition mode, the number of permutations to run
   on high and low expressed genes locally
-- **skip.extremes**: skips tabulating co-expression on comparisons with
-  very highly or very lowly expressed genes
+- **skip.extremes**: genes above the "topExcl" threshold have a local MOC calculated to reduce bias from paritions.
 - **seurat**: main Seurat version being used (e.g, 3, 4, 5…), as
   numeric.
 

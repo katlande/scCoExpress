@@ -1,0 +1,1 @@
+utils::globalVariables(c("gene", "Z", "GeneA", "GeneB", "b", "a", "permutations", "Zadj", "MOC_Z", "MOC_Ratio", "occurance"))

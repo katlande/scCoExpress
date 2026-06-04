@@ -1,11 +1,11 @@
+# Internal function
+#' @noRd
 bkgdMOCLocal <- function(df, gene_expr, SeuratObj, bkgd=5, assay=NULL, slot="data"){
   bkgd <- ceiling(bkgd/3)
   
   message("Checking backgrounds MOCs for each gene combination...")
-  mocs <- list()
-  for(i in 1:nrow(df)){
-    
-    # find the most similarly expressed background genes for colocalization targets:
+  tryCatch(lapply(1:nrow(df), function(i){
+    # get background genes with similar expression to gene A:
     a <- df$GeneA[i]
     aV <- which(gene_expr$gene == a)
     if(aV-bkgd <= 0){
@@ -19,8 +19,9 @@ bkgdMOCLocal <- function(df, gene_expr, SeuratObj, bkgd=5, assay=NULL, slot="dat
     } else{
       bkgd_a <- gene_expr$gene[c((aV-bkgd):(aV-1), (aV+1):(aV+bkgd))]
     }
-    bkgd_a <- sample(bkgd_a)
+    # bkgd_a <- sample(bkgd_a)
     
+    # get background genes with similar expression to gene B:
     b <- df$GeneB[i]
     bV <- which(gene_expr$gene == b)
     if(bV-bkgd <= 0){
@@ -34,35 +35,35 @@ bkgdMOCLocal <- function(df, gene_expr, SeuratObj, bkgd=5, assay=NULL, slot="dat
     } else{
       bkgd_b <- gene_expr$gene[c((bV-bkgd):(bV-1), (bV+1):(bV+bkgd))]
     }
-    bkgd_b <- sample(bkgd_b)
+    # bkgd_b <- sample(bkgd_b)
     
-    # Re-sample the orders 3 times:
-    resample_vec_moc <- c()
-    for(q in 1:3){
-      # randomly re-order the vector until you have no identical gene comparisons, if that does happen (rare):
+    lapply(1:3, function(q){
+      # re-order
+      bkgd_b <- sample(bkgd_b)
+      bkgd_a <- sample(bkgd_a)
+      
+      # prevent self-to-self comparisons:
       j <- 0
       while(any(apply(data.frame(a=bkgd_a, b=bkgd_b), 1, function(x){identical(as.character(x)[1], as.character(x)[2])}))){
         bkgd_a <- sample(bkgd_a)
         j <- j+1
         if(j>50){
-          warning(paste0("Background for a & b genes is highly similar! It is taking a long time to find unique background gene pairs for ", a, " and ", b, "..."))
-          j <- 0
+          warning(paste0("Cannot find enough unique background gene pairs for ", a, " and ", b, "!"))
+        }
+        if(j > 100){
+          stop(paste("Could not find enough valid gene pairs to create a null background! There are likely not enough genes in this dataset to find", permutations, "permutations of null."))
         }
       }
       
-      # gene the mean MOC for all the background comparisons:
+      # get the mean MOC for all the background comparisons:
       k <- as.numeric(unlist(lapply(1:length(bkgd_b), function(x){
         calcMOC(SeuratObj, assay, slot, bkgd_a[as.numeric(x)], bkgd_b[as.numeric(x)])
       }) ))
       
-      resample_vec_moc <- c(resample_vec_moc, k)
-      bkgd_b <- sample(bkgd_b)
-      bkgd_a <- sample(bkgd_a)
-    }
-    
-    mocs <- append(mocs, list(resample_vec_moc))
-    
-  }
+      return(k)
+    }) -> resample_vec_moc
+    return(unlist(resample_vec_moc))
+  })) -> mocs
   
   return(mocs)
 }

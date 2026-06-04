@@ -1,3 +1,4 @@
+#' @export
 getGeneExpr <- function(SeuratObj, assay=NULL, slot="data", v=5){
   message("Getting background frequency information...")
   
