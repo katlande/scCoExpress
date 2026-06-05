@@ -178,6 +178,7 @@ ShowResiduals(coExpr_Res_Local)
 #### We also expect local mode to have very small residuals.
 
 ## Understanding the Co-Expression output values
+**NOTE: This section of the vignette was written under scCoExpress v0.1.0. As of version 0.1.2, p-values are now calculated by CoExpress().**
 
 - GeneA & GeneB: the genes in your comparison.
 - MOC: The Mander’s Overlap Coefficient of Genes A&B
