@@ -2,6 +2,10 @@
 getGeneExpr <- function(SeuratObj, assay=NULL, slot="data", v=5){
   message("Getting background frequency information...")
   
+  if(is.null(assay)){
+    assay <- DefaultAssay(SeuratObj)
+  }
+  
   if(v >= 5){
     apply(SeuratObj@assays[[assay]][slot], 1, function(x){
       y <- table(as.numeric(x) > 0)
