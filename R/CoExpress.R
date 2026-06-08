@@ -2,8 +2,8 @@
 CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
                       nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, 
                       local.perms=6, skip.extremes=F, seurat=5, show.progress=FALSE){
-
- if(is.null(seuratAssay)){
+  
+  if(is.null(seuratAssay)){
     seuratAssay <- Seurat::DefaultAssay(obj)
   }
   
@@ -44,7 +44,7 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     gene_A <- target_genes[!target_genes %in% gene2]
     gene_B <- gene2
   }
-
+  
   message("Calculating Co-Localization in Pairs...")
   lapply(1:length(gene_A), function(i){
     
@@ -67,10 +67,11 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
     
     GetCoExpr_OUTPUTFILE <- cbind(GetCoExpr_OUTPUTFILE, data.frame(MOC_bkgd=unlist(lapply(MOC_backgrounds, mean))))
     
-    GetCoExpr_OUTPUTFILE$MOC_Z <- NA
-    for(i in 1:nrow(GetCoExpr_OUTPUTFILE)){
-      GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(MOC_backgrounds[[i]]))/stats::sd(MOC_backgrounds[[i]])
-    }
+    lapply(1:nrow(GetCoExpr_OUTPUTFILE), function(i){
+      (GetCoExpr_OUTPUTFILE$MOC[i]-mean(MOC_backgrounds[[i]]))/stats::sd(MOC_backgrounds[[i]])
+    }) -> t
+    unlist(t) -> GetCoExpr_OUTPUTFILE$MOC_Z
+    
     
     GetCoExpr_OUTPUTFILE$MOC_Ratio <- GetCoExpr_OUTPUTFILE$MOC/GetCoExpr_OUTPUTFILE$MOC_bkgd
     
@@ -99,32 +100,31 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
       }
     } 
     
-    GetCoExpr_OUTPUTFILE$MOC_bkgd <- NA
-    GetCoExpr_OUTPUTFILE$MOC_Z <- NA
-    GetCoExpr_OUTPUTFILE$Comparison_Type <- NA
-    for(i in 1:nrow(GetCoExpr_OUTPUTFILE)){
+    lapply(1:nrow(GetCoExpr_OUTPUTFILE), function(i){
       
+      # define comparison for all gene pairs:
       a <- GetCoExpr_OUTPUTFILE$GeneA[i]
       b <- GetCoExpr_OUTPUTFILE$GeneB[i]
-      GetCoExpr_OUTPUTFILE$Comparison_Type[i] <- paste0(BkgdGeneExpr$group[BkgdGeneExpr$gene==a], "-", BkgdGeneExpr$group[BkgdGeneExpr$gene==b])
+      cType <- paste0(BkgdGeneExpr$group[BkgdGeneExpr$gene==a], "-", BkgdGeneExpr$group[BkgdGeneExpr$gene==b])
       
-      # if the comparison contains an edge gene:
+      # co-expression, mode depending on if the comparison contains an edge gene:
       if(! BkgdGeneExpr$group[BkgdGeneExpr$gene==a] %in% c("HIGHLY EXPRESSED", "LOWLY EXPRESSED") & 
          ! BkgdGeneExpr$group[BkgdGeneExpr$gene==b] %in% c("HIGHLY EXPRESSED", "LOWLY EXPRESSED")){
+        # no extreme genes, check normally with partitions:
         if(show.progress){
           cat(".")
         }
         g <- paste0(BkgdGeneExpr$group[BkgdGeneExpr$gene==a], BkgdGeneExpr$group[BkgdGeneExpr$gene==b])
-        GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(expr_groups[[g]])
-        GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(expr_groups[[g]]))/stats::sd(expr_groups[[g]])
+        #outputs:
+        mb <- mean(expr_groups[[g]])
+        mz <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(expr_groups[[g]]))/stats::sd(expr_groups[[g]])
       } else{
-        
-        
+        # if there are extreme genes, auto-skip comparisons with extremely low expression
         if(skip.extremes |  
            BkgdGeneExpr$group[BkgdGeneExpr$gene==a] == "LOWLY EXPRESSED" | 
            BkgdGeneExpr$group[BkgdGeneExpr$gene==b] == "LOWLY EXPRESSED"){
-          GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- NA
-          GetCoExpr_OUTPUTFILE$MOC_Z[i] <- NA
+          mb <- NA
+          mz <- NA
         }else{
           if(show.progress){
             cat("*")
@@ -132,13 +132,17 @@ CoExpress <- function(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlo
           # get the background and Z score for local comparisons here...
           v <- Local_Once(SOBJ = obj, ass = seuratAssay, sl = seuratSlot, a = GetCoExpr_OUTPUTFILE$GeneA[i], 
                           b = GetCoExpr_OUTPUTFILE$GeneB[i], bkgd = local.perms, gene_expr = BkgdGeneExpr)
-          GetCoExpr_OUTPUTFILE$MOC_bkgd[i] <- mean(v)
-          GetCoExpr_OUTPUTFILE$MOC_Z[i] <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(v))/stats::sd(v)
+          # outputs:
+          mb <- mean(v)
+          mz <- (GetCoExpr_OUTPUTFILE$MOC[i]-mean(v))/stats::sd(v)
           rm(v)
         }
       }
       
-    }
+      return(data.frame(MOC_bkgd=mb, MOC_Z=mz, Comparison_Type=cType))
+      
+    }) -> f
+    GetCoExpr_OUTPUTFILE <- cbind(GetCoExpr_OUTPUTFILE, do.call(rbind, f))
     GetCoExpr_OUTPUTFILE$MOC_Ratio <- GetCoExpr_OUTPUTFILE$MOC/GetCoExpr_OUTPUTFILE$MOC_bkgd
   }
   
