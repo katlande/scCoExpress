@@ -8,6 +8,9 @@ test_that(
     expect_false(anyNA(df$MOC_Ratio))
     # check if CoExpress runs when skip.extremes == T
     expect_shape(CoExpress(pbmc, GOIs, skip.extremes=T), nrow=15)
+    # check if different partition numbers work:
+    expect_shape(CoExpress(pbmc, GOIs, skip.extremes=T, nPartitions = 15), nrow=15) # many
+    expect_shape(CoExpress(pbmc, GOIs, skip.extremes=T, nPartitions = 3), nrow=15) # few
     # query input against HLA-DQB2 and expect HLA-DBQ1 to be the most co-expressed (biological truth):
     df2 <- CoExpress(pbmc, GOIs, gene2="HLA-DQB2")
     expect_true(df2$GeneA[order(df2$MOC_Ratio, decreasing=T)][1] == "HLA-DQB1")

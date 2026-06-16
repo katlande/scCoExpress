@@ -1,6 +1,6 @@
 # Internal function
 #' @noRd
-bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, assay=NULL, slot="data", top, bottom){
+bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=NULL, assay=NULL, slot="data", top, bottom){
   
   # high and low expressiong cut-offs:
   minThresh <- nrow(gene_expr[gene_expr$occurance <= bottom,])
@@ -8,7 +8,7 @@ bkgdMOCParition <- function(SeuratObj, gene_expr, permutations=5, paritions=4, a
 
   # updated to ignore bug created by too large 0 pool:
   gene_expr$group <- NA
-  locs <- seq(minThresh, maxThresh+1, by=(as.integer(length(minThresh:maxThresh)/7)))
+  locs <- seq(minThresh, maxThresh+1, by=(as.integer(length(minThresh:maxThresh)/paritions)))
   locs <- c(1,locs,nrow(gene_expr))
   # label thresholds:
   j <- 1

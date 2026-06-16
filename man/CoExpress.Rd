@@ -3,8 +3,9 @@
 \title{Get Co-expression information from a list of genes.}
 \usage{
 CoExpress(obj, target_genes, gene2=NULL, seuratAssay=NULL, seuratSlot="data", 
-          nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98, bottomExcl=0.005, 
-          local.perms=6, skip.extremes=F, seurat=5, show.progress=FALSE)
+          nPartitions=7, nPermutations=50, BkgdGeneExpr=NULL, topExcl=0.98,
+          bottomExcl=0.005, local.perms=6, skip.extremes=F, seurat=5,
+          show.progress=FALSE)
 }
 \description{
 Get cell-level co-expression values on a set of gene pairs from a single cell, single nuclei,
