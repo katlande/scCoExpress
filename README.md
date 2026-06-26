@@ -18,3 +18,6 @@ remotes::install_github("katlande/scCoExpress")
 
 ## Vignette:
 [Instructions for Use](https://github.com/katlande/scCoExpress/blob/main/scCoExpress.md)
+
+## Original Publication Release
+[![DOI](https://zenodo.org/badge/978861151.svg)](https://doi.org/10.5281/zenodo.20942906)
