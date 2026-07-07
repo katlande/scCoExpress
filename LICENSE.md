@@ -1,2 +1,4 @@
 YEAR: 2026
+
+
 LICENSE: GPL-3.0
